@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+dirs = "5.0.1"
 notify = "5.1.0"
 serde = { version = "1.0", features = ["derive"] }
 toml_edit = "0.19.8"

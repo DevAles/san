@@ -1,6 +1,9 @@
 mod syncer;
 
-use std::fs;
+use std::{
+    fs::{self, File},
+    path::PathBuf,
+};
 
 use syncer::Syncer;
 
@@ -20,16 +23,47 @@ impl Preset {
     }
 
     fn register(&self) {
-        let toml = fs::read_to_string("config.toml").unwrap();
+        let config_file_path = get_config_file_path();
+        let toml = fs::read_to_string(&config_file_path).unwrap();
         let mut doc = toml.parse::<Document>().unwrap();
 
         doc["presets"][&self.name]["source"] = toml_edit::value(&self.source);
         doc["presets"][&self.name]["dest"] = toml_edit::value(&self.dest);
 
-        fs::write("config.toml", doc.to_string()).unwrap();
+        fs::write(&config_file_path, doc.to_string()).unwrap();
     }
 }
+
+fn get_config_file_path() -> PathBuf {
+    let mut path = dirs::home_dir().unwrap();
+    path.push(".local/share/san/config.toml");
+    path
+}
+
+fn create_config_file() {
+    let file_path = get_config_file_path();
+    let file_contents = match fs::read_to_string(&file_path) {
+        Ok(contents) => contents,
+        Err(_) => {
+            let dir_path = file_path.parent().unwrap();
+            fs::create_dir_all(&dir_path).unwrap();
+            File::create(&file_path).unwrap();
+            "".to_string()
+        }
+    };
+    if !file_contents.contains("[presets]") {
+        fs::write(
+            &file_path,
+            r#"
+            [presets]
+            "#,
+        )
+        .unwrap();
+    }
+}
+
 fn main() {
+    create_config_file();
     let args = std::env::args().collect::<Vec<_>>();
 
     if args.len() < 2 {
@@ -74,7 +108,9 @@ fn main() {
             }
 
             let name = &args[2];
-            let toml = fs::read_to_string("config.toml").unwrap();
+
+            let file_path = get_config_file_path();
+            let toml = fs::read_to_string(&file_path).unwrap();
             let doc = toml.parse::<Document>().unwrap();
 
             let source = doc["presets"][name]["source"].as_str().unwrap();
@@ -84,7 +120,8 @@ fn main() {
             syncer.watch();
         }
         "list" => {
-            let toml = fs::read_to_string("config.toml").unwrap();
+            let file_path = get_config_file_path();
+            let toml = fs::read_to_string(&file_path).unwrap();
             let doc = toml.parse::<Document>().unwrap();
 
             let presets = doc["presets"].as_table().unwrap();
