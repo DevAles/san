@@ -1,5 +1,5 @@
 [package]
-name = "san"
+name = "san_wrapper"
 description = "A simple rclone wrapper to make easy sync files between local and remote recusively."
 version = "0.1.0"
 edition = "2021"
