@@ -11,15 +11,9 @@ pub struct Syncer {
 }
 
 impl Syncer {
-    pub fn new() -> Syncer {
-        let args = std::env::args().collect::<Vec<_>>();
-        if args.len() != 3 {
-            println!("Usage: {} <path1> <path2>", args[0]);
-            std::process::exit(1);
-        }
-
-        let local_path = PathBuf::from(&args[1]);
-        let remote_path = PathBuf::from(&args[2]);
+    pub fn new(local_path: &str, remote_path: &str) -> Syncer {
+        let local_path = PathBuf::from(local_path);
+        let remote_path = PathBuf::from(remote_path);
 
         if !local_path.exists() {
             println!("Path {} does not exist", local_path.to_str().unwrap());
